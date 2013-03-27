@@ -62,6 +62,7 @@ reboot
 labourously install all the development stuff and build time dependencies
 reboot
 setup cygwin shell on serial port as a service
+or sshd, seems to work better
 reboot
 Then reboot more, coz it's Windows.
 
