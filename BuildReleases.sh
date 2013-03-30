@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # These control which ones get built.
+do_linux64=1
+do_linux32=1
 do_local=0
-do_linux64=0
-do_linux32=0
-do_windowsXP=1
 do_mac=0
+do_windowsXP=1
 
 # Where to find suitable disk images for the various OS's.
 img_linux64=~/bin/ubuntu64_diff.qcow2
@@ -68,6 +68,103 @@ trap "kill $(jobs -p)" EXIT
 disown $(jobs -p)
 # QEMU's alias for host loopback
 FTP_SERVER=10.0.2.2
+
+
+# Do Windows first, coz it still needs a manually typed password, dammit.
+if [ $do_windowsXP -eq 1 ]
+then
+    echo "Building in qemu, Windows XP."
+    qemu-system-i386 -M pc -cpu athlon -m 2G -hda ${img_windowsXP} -net nic -net user,vlan=0,hostfwd=tcp::2222-:22 -rtc base=localtime &
+    sleep 30
+    #expect -c 'spawn ssh -p 2222 me@localhost ; expect assword ; send " \n" ; interact' <<- zzzzEOFzzzz
+    ssh -p 2222 me@localhost <<- zzzzEOFzzzz
+    # TODO - there has to be a way of avoiding all this hard coded stuff, coz this is way too fragile.
+    PATH='/bin:/usr/local/bin:/usr/bin:'\$PATH':/cygdrive/c/Program Files/Microsoft SDKs/v6.1/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/SDK/v2.0/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/IDE:/cygdrive/c/Program Files/Microsoft Visual Studio 8/VC/bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/Tools/:/cygdrive/c/Program Files/Inno Setup 5'
+    #./.profile
+    #./.bash_profile
+    export DXSDK_DIR='C:\Program Files\Microsoft DirectX SDK (November 2008)\'
+    #vcvarsall.bat x86
+    export INCLUDE="C:\Program Files\Microsoft Visual Studio 8\VC\include;C:\Program Files\Microsoft SDKs\Windows\v6.1\Include"
+    export LIB="C:\Program Files\Microsoft Visual Studio 8\VC\lib;C:\Program Files\Microsoft Visual Studio 8\SDK\v2.0\Lib;C:\Program Files\Microsoft SDKs\Windows\v6.1\Lib"
+    export LIBPATH="C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727"
+    #echo \$PATH
+    #set
+    cd /home/me
+    rm -fr BUILD
+    mkdir -p BUILD
+    rm -fr TARBALLS
+    mkdir -p TARBALLS
+    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 impy-release-source_${date}.tar.gz'
+    tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD
+    cd /home/me/BUILD/SOURCE
+    cd linden/scripts/linux
+
+    # Apparently my "works everywhere" Linux specific scripts work on Cygwin to.  Mostly.
+    ./0-patch-SL-source
+    ./1-get-libraries-from-SL
+    ./2-trim-libraries-from-SL
+    ./3-compile-SL-source
+
+    cd /home/me/BUILD/SOURCE
+    rm linden/indra/CMakeCache.txt
+    cd linden/indra
+    # This would be preferable, but NMake is not an option.
+    #./develop.py -G "nmake" --type=Release build
+    # Also, apparently there's Cygwin support, but might have to install the cygwin python for that.
+    cmake -DCMAKE_BUILD_TYPE:STRING="Release" -DSTANDALONE:BOOL=OFF -DUNATTENDED:BOOL=OFF -DROOT_PROJECT_NAME:STRING="Imprudence" -DPACKAGE:BOOL=ON -G "NMake Makefiles" build .
+    # Hack around a bug in cmake that I'm surprised did not hit GUI controlled builds.
+    sed -i "s|\(^RC_FLAGS .* \) /GS .*$|\1|"  win_crash_logger/CMakeFiles/windows-crash-logger.dir/flags.make
+    sed -i "s|\(^RC_FLAGS .* \) /GS .*$|\1|"  newview/CMakeFiles/imprudence-bin.dir/flags.make
+    #cd build-nmake
+    nmake
+
+    # Build the inno installer.
+    iscc newview/package/Imprudence-1.4.0.3-beta-2.iss
+    cp newview/package/Imprudence-*.exe /home/me/TARBALLS
+    cd /home/me/TARBALLS
+    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput Imprudence-*'
+
+    shutdown -s now
+zzzzEOFzzzz
+
+    # A here document would be preferable, but "interact" won't work then.
+    # Serial port would be preferable, but python does nothing then.  WTF?
+#    expect -c "
+#	set timeout -1
+#	set send_slow {1 .1}
+#	spawn qemu-system-i386 -M pc -cpu athlon -m 2G -hda ${img_windowsXP} -serial stdio -rtc base=localtime
+#	match_max 100000
+#	strace 1
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"PATH=\\\$PATH':${cw_path}'\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"echo \\\$PATH\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"rm -fr BUILD\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"rm -fr TARBALLS\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"mkdir -p BUILD\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"mkdir -p TARBALLS\r\"
+#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 impy-release-source_${date}.tar.gz'\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me/BUILD/SOURCE\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd linden/scripts/linux\r\"
+
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"./0-patch-SL-source\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"./1-get-libraries-from-SL\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"./2-trim-libraries-from-SL\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"./3-compile-SL-source\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd ../../indra/viewer-windows-*\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"make package\r\"
+
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"cp Imprudence-* ../../../../../TARBALLS\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me/BUILD/TARBALLS\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"ls -la\r\"
+#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && mput Imprudence-*'\r\"
+
+#	interact quit return; sleep .1;  send -s -- \"\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"shutdown -s now\r\"
+#	expect eof"
+    echo ''
+    sleep 10
+fi
 
 
 if [ $do_local -eq 1 ]
@@ -150,95 +247,6 @@ then
 
     shutdown -h now
 zzzzEOFzzzz
-    sleep 10
-fi
-
-
-if [ $do_windowsXP -eq 1 ]
-then
-    echo "Building in qemu, Windows XP."
-    qemu-system-i386 -M pc -cpu athlon -m 2G -hda ${img_windowsXP} -net nic -net user,vlan=0,hostfwd=tcp::2222-:22 -rtc base=localtime &
-    sleep 30
-    ssh -p 2222 me@localhost <<- zzzzEOFzzzz
-    PATH='/bin:/usr/local/bin:/usr/bin:'\$PATH':/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/IDE:/cygdrive/c/Program Files/Microsoft Visual Studio 8/VC/bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/Tools/:/cygdrive/c/Program Files/Microsoft Visual Studio 8/SDK/v2.0/Bin'
-    ./.profile
-    ./.bash_profile
-    export DXSDK_DIR='C:\Program Files\Microsoft DirectX SDK (November 2008)\'
-    #vcvarsall.bat x86
-    export INCLUDE="C:\Program Files\Microsoft Visual Studio 8\VC\include;C:\Program Files\Microsoft SDKs\Windows\v6.1\Include"
-    export LIB="C:\Program Files\Microsoft Visual Studio 8\VC\lib;C:\Program Files\Microsoft Visual Studio 8\SDK\v2.0\Lib;C:\Program Files\Microsoft SDKs\Windows\v6.1\Lib"
-    export LIBPATH="C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727"
-    echo \$PATH
-    set
-    cd /home/me
-    #rm -fr BUILD/SOURCE/linden/indra
-    #rm -fr BUILD
-    rm -fr TARBALLS
-    #mkdir -p BUILD
-    mkdir -p TARBALLS
-    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 impy-release-source_${date}.tar.gz'
-    tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD
-    cd /home/me/BUILD/SOURCE
-    rm linden/indra/CMakeCache.txt
-    cd linden/scripts/linux
-
-    ./0-patch-SL-source
-    ./1-get-libraries-from-SL
-    ./2-trim-libraries-from-SL
-    ./3-compile-SL-source
-    ls -la ../../indra
-    #cd ../../indra/viewer-windows-*
-    #make package
-
-    cd /home/me/BUILD/SOURCE
-    rm linden/indra/CMakeCache.txt
-    cd linden/indra
-    cmake -G "NMake Makefiles" .
-    nmake
-
-    ls -la
-    #cp Imprudence-* ../../../../../TARBALLS
-    cd /home/me/BUILD/TARBALLS
-    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && mput Imprudence-*'
-
-    shutdown -s now
-zzzzEOFzzzz
-
-    # A here document would be preferable, but "interact" won't work then.
-#    expect -c "
-#	set timeout -1
-#	set send_slow {1 .1}
-#	spawn qemu-system-i386 -M pc -cpu athlon -m 2G -hda ${img_windowsXP} -serial stdio -rtc base=localtime
-#	match_max 100000
-#	strace 1
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"PATH=\\\$PATH':${cw_path}'\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"echo \\\$PATH\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"rm -fr BUILD\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"rm -fr TARBALLS\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"mkdir -p BUILD\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"mkdir -p TARBALLS\r\"
-#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 impy-release-source_${date}.tar.gz'\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me/BUILD/SOURCE\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd linden/scripts/linux\r\"
-
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"./0-patch-SL-source\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"./1-get-libraries-from-SL\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"./2-trim-libraries-from-SL\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"./3-compile-SL-source\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd ../../indra/viewer-windows-*\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"make package\r\"
-
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"cp Imprudence-* ../../../../../TARBALLS\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me/BUILD/TARBALLS\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"ls -la\r\"
-#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && mput Imprudence-*'\r\"
-
-#	interact quit return; sleep .1;  send -s -- \"\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"shutdown -s now\r\"
-#	expect eof"
-    echo ''
     sleep 10
 fi
 

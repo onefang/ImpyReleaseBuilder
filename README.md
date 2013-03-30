@@ -60,6 +60,7 @@ create the disk image
 install under qemu
 reboot
 labourously install all the development stuff and build time dependencies
+(refer to http://wiki.kokuaviewer.org/wiki/Imprudence:Compiling/1.4/Windows for details)
 reboot
 setup cygwin shell on serial port as a service
 or sshd, seems to work better
