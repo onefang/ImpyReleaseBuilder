@@ -37,8 +37,6 @@ unique_port()
 
 rm -rf TARBALLS
 mkdir TARBALLS
-date=$(date '+%H_%d-%m-%Y')
-
 
 if [ -d SOURCE ]; then
     echo "Updating source."
@@ -51,9 +49,11 @@ else
     git clone git://github.com/imprudence/imprudence.git SOURCE || exit 0
 fi
 
+version=$(SOURCE/linden/scripts/viewer_info.py --combined)
+date=$(date '+%Y-%m-%d_%H')
 
 echo "Creating source tarball."
-tar czf TARBALLS/impy-release-source_${date}.tar.gz SOURCE &&
+tar czf TARBALLS/${version}-source_${date}.tar.gz SOURCE &&
 
 
 FTP_PORT=$(unique_port)
@@ -94,10 +94,10 @@ then
     mkdir -p BUILD
     rm -fr TARBALLS
     mkdir -p TARBALLS
-    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 impy-release-source_${date}.tar.gz'
-    tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD
     cd /home/me/BUILD/SOURCE
     cd linden/scripts/linux
+    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 ${version}-source_${date}.tar.gz'
+    tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD
 
     # Apparently my "works everywhere" Linux specific scripts work on Cygwin to.  Mostly.
     ./0-patch-SL-source
@@ -142,8 +142,8 @@ zzzzEOFzzzz
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"rm -fr TARBALLS\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"mkdir -p BUILD\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"mkdir -p TARBALLS\r\"
-#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 impy-release-source_${date}.tar.gz'\r\"
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD\r\"
+#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 ${version}-source_${date}.tar.gz'\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me/BUILD/SOURCE\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"cd linden/scripts/linux\r\"
 
@@ -172,7 +172,7 @@ then
     echo "Building local." &&
     rm -fr BUILD &&
     mkdir BUILD &&
-    tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD &&
+    tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD &&
     cd BUILD/SOURCE &&
     cd linden/scripts/linux &&
     ./0-patch-SL-source &&
@@ -198,8 +198,8 @@ then
     mkdir -p BUILD &&
     mkdir -p TARBALLS &&
     sleep 2 &&
-    busybox ftpget ${FTP_SERVER} -vP ${FTP_PORT} TARBALLS/impy-release-source_${date}.tar.gz impy-release-source_${date}.tar.gz &&
-    tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD &&
+    busybox ftpget ${FTP_SERVER} -vP ${FTP_PORT} TARBALLS/${version}-source_${date}.tar.gz ${version}-source_${date}.tar.gz &&
+    tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD &&
     cd BUILD/SOURCE &&
     cd linden/scripts/linux &&
     ./0-patch-SL-source &&
@@ -211,7 +211,7 @@ then
     cd ../../indra/viewer-linux-* &&
     cp Imprudence-* ../../../../../TARBALLS &&
     cd /home/builder/TARBALLS &&
-    find . -name Imprudence-* -type f -exec busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} '{}' '{}' \;
+    busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86_64.tar.bz2 ${version}-Linux-x86_64.tar.bz2
 
     shutdown -h now
 zzzzEOFzzzz
@@ -231,8 +231,8 @@ then
     mkdir -p BUILD &&
     mkdir -p TARBALLS &&
     sleep 2 &&
-    busybox ftpget ${FTP_SERVER} -vP ${FTP_PORT} TARBALLS/impy-release-source_${date}.tar.gz impy-release-source_${date}.tar.gz &&
-    tar xzf TARBALLS/impy-release-source_${date}.tar.gz -C BUILD &&
+    busybox ftpget ${FTP_SERVER} -vP ${FTP_PORT} TARBALLS/${version}-source_${date}.tar.gz ${version}-source_${date}.tar.gz &&
+    tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD &&
     cd BUILD/SOURCE &&
     cd linden/scripts/linux &&
     ./0-patch-SL-source &&
@@ -243,7 +243,7 @@ then
     cd ../../indra/viewer-linux-* &&
     cp Imprudence-* ../../../../../TARBALLS &&
     cd /home/builder/TARBALLS &&
-    find . -name Imprudence-* -type f -exec busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} '{}' '{}' \;
+    busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86.tar.bz2 ${version}-Linux-x86.tar.bz2
 
     shutdown -h now
 zzzzEOFzzzz
