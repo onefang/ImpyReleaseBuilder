@@ -79,6 +79,8 @@ then
     #expect -c 'spawn ssh -p 2222 me@localhost ; expect assword ; send " \n" ; interact' <<- zzzzEOFzzzz
     ssh -p 2222 me@localhost <<- zzzzEOFzzzz
     # TODO - there has to be a way of avoiding all this hard coded stuff, coz this is way too fragile.
+    # Windows python insists on putting some crap at the end of the output, so we can't run the above version command here, instead just pass it.
+    export version=${version}
     PATH='/bin:/usr/local/bin:/usr/bin:'\$PATH':/cygdrive/c/Program Files/Microsoft SDKs/v6.1/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/SDK/v2.0/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/IDE:/cygdrive/c/Program Files/Microsoft Visual Studio 8/VC/bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/Tools/:/cygdrive/c/Program Files/Inno Setup 5'
     #./.profile
     #./.bash_profile
@@ -87,40 +89,25 @@ then
     export INCLUDE="C:\Program Files\Microsoft Visual Studio 8\VC\include;C:\Program Files\Microsoft SDKs\Windows\v6.1\Include"
     export LIB="C:\Program Files\Microsoft Visual Studio 8\VC\lib;C:\Program Files\Microsoft Visual Studio 8\SDK\v2.0\Lib;C:\Program Files\Microsoft SDKs\Windows\v6.1\Lib"
     export LIBPATH="C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727"
-    #echo \$PATH
-    #set
+    # So that we can find a place to cache the pre builds.
+    mkdir -p /cygdrive/c/TEMP
     cd /home/me
     rm -fr BUILD
     mkdir -p BUILD
     rm -fr TARBALLS
     mkdir -p TARBALLS
-    cd /home/me/BUILD/SOURCE
-    cd linden/scripts/linux
     lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 ${version}-source_${date}.tar.gz'
     tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD
+    cd /home/me/BUILD/SOURCE/linden/scripts/linux
 
     # Apparently my "works everywhere" Linux specific scripts work on Cygwin to.  Mostly.
     ./0-patch-SL-source
     ./1-get-libraries-from-SL
     ./2-trim-libraries-from-SL
     ./3-compile-SL-source
+    ./4-package-viewer
 
-    cd /home/me/BUILD/SOURCE
-    rm linden/indra/CMakeCache.txt
-    cd linden/indra
-    # This would be preferable, but NMake is not an option.
-    #./develop.py -G "nmake" --type=Release build
-    # Also, apparently there's Cygwin support, but might have to install the cygwin python for that.
-    cmake -DCMAKE_BUILD_TYPE:STRING="Release" -DSTANDALONE:BOOL=OFF -DUNATTENDED:BOOL=OFF -DROOT_PROJECT_NAME:STRING="Imprudence" -DPACKAGE:BOOL=ON -G "NMake Makefiles" build .
-    # Hack around a bug in cmake that I'm surprised did not hit GUI controlled builds.
-    sed -i "s|\(^RC_FLAGS .* \) /GS .*$|\1|"  win_crash_logger/CMakeFiles/windows-crash-logger.dir/flags.make
-    sed -i "s|\(^RC_FLAGS .* \) /GS .*$|\1|"  newview/CMakeFiles/imprudence-bin.dir/flags.make
-    #cd build-nmake
-    nmake
-
-    # Build the inno installer.
-    iscc newview/package/Imprudence-1.4.0.3-beta-2.iss
-    cp newview/package/Imprudence-*.exe /home/me/TARBALLS
+    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/package/Imprudence-*.exe /home/me/TARBALLS
     cd /home/me/TARBALLS
     lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput Imprudence-*'
 
