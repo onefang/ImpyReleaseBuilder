@@ -189,7 +189,7 @@ fi
 if [ $do_linux64 -eq 1 ]
 then
     echo "Building in qemu, 64 bit linux." &&
-    qemu-system-x86_64 -M pc -cpu phenom -m 1G -hda $img_linux64 -serial stdio <<- zzzzEOFzzzz
+    qemu-system-x86_64 -M pc -cpu phenom -m 1G -hda ${img_linux64} -serial stdio <<- zzzzEOFzzzz
 	#
     mkdir -p /home/builder &&
     cd /home/builder &&
@@ -209,7 +209,7 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp Imprudence-* ../../../../../TARBALLS &&
+    cp Imprudence-* /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
     busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86_64.tar.bz2 ${version}-Linux-x86_64.tar.bz2
 
@@ -222,7 +222,7 @@ fi
 if [ $do_linux32 -eq 1 ]
 then
     echo "Building in qemu, 32 bit linux." &&
-    qemu-system-i386 -M pc -cpu athlon -m 1G -hda $img_linux32 -serial stdio <<- zzzzEOFzzzz
+    qemu-system-i386 -M pc -cpu athlon -m 1G -hda ${img_linux32} -serial stdio <<- zzzzEOFzzzz
 	#
     mkdir -p /home/builder &&
     cd /home/builder &&
@@ -241,7 +241,7 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp Imprudence-* ../../../../../TARBALLS &&
+    cp Imprudence-* /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
     busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86.tar.bz2 ${version}-Linux-x86.tar.bz2
 
