@@ -53,7 +53,7 @@ version=$(SOURCE/linden/scripts/viewer_info.py --combined)
 date=$(date '+%Y-%m-%d_%H')
 
 echo "Creating source tarball."
-tar czf TARBALLS/${version}-source_${date}.tar.gz SOURCE &&
+tar czf TARBALLS/${version}-source_${date}.tar.gz --exclude-vcs SOURCE &&
 
 
 FTP_PORT=$(unique_port)
