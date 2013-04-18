@@ -107,9 +107,9 @@ then
     ./3-compile-SL-source
     ./4-package-viewer
 
-    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/package/Imprudence-*.exe /home/me/TARBALLS
+    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/package/${version}-*.exe /home/me/TARBALLS
     cd /home/me/TARBALLS
-    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput Imprudence-*'
+    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput ${version}-*.exe'
 
     shutdown -s now
 zzzzEOFzzzz
@@ -141,10 +141,10 @@ zzzzEOFzzzz
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"cd ../../indra/viewer-windows-*\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"make package\r\"
 
-#	expect -exact \"\$ \"; sleep .1; send -s -- \"cp Imprudence-* ../../../../../TARBALLS\r\"
+#	expect -exact \"\$ \"; sleep .1; send -s -- \"cp ${version}-*.exe ../../../../../TARBALLS\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"cd /home/me/BUILD/TARBALLS\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"ls -la\r\"
-#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && mput Imprudence-*'\r\"
+#	expect -exact \"\$ \"; sleep 2;  send -s -- \"lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && mput ${version}-*.exe'\r\"
 
 #	interact quit return; sleep .1;  send -s -- \"\r\"
 #	expect -exact \"\$ \"; sleep .1; send -s -- \"shutdown -s now\r\"
@@ -168,7 +168,7 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp Imprudence-* ../../../../../TARBALLS
+    cp ${version}-Linux-*.tar.bz2 ../../../../../TARBALLS
     cd ../../../../..
 fi
 
@@ -196,7 +196,7 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp Imprudence-* /home/builder/TARBALLS &&
+    cp ${version}-Linux-x86_64.tar.bz2 /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
     busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86_64.tar.bz2 ${version}-Linux-x86_64.tar.bz2
 
@@ -228,7 +228,7 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp Imprudence-* /home/builder/TARBALLS &&
+    cp ${version}-Linux-x86.tar.bz2 /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
     busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86.tar.bz2 ${version}-Linux-x86.tar.bz2
 
