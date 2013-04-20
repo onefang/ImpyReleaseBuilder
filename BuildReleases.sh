@@ -99,18 +99,15 @@ then
     lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd TARBALLS && get1 ${version}-source_${date}.tar.gz'
     tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD
     cd /home/me/BUILD/SOURCE/linden/scripts/linux
-
     # Apparently my "works everywhere" Linux specific scripts work on Cygwin to.  Mostly.
     ./0-patch-SL-source
     ./1-get-libraries-from-SL
     ./2-trim-libraries-from-SL
     ./3-compile-SL-source
     ./4-package-viewer
-
     cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/package/${version}-*.exe /home/me/TARBALLS
     cd /home/me/TARBALLS
     lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput ${version}-*.exe'
-
     shutdown -s now
 zzzzEOFzzzz
 
@@ -199,7 +196,6 @@ then
     cp ${version}-Linux-x86_64.tar.bz2 /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
     busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86_64.tar.bz2 ${version}-Linux-x86_64.tar.bz2
-
     shutdown -h now
 zzzzEOFzzzz
     sleep 10
@@ -231,7 +227,6 @@ then
     cp ${version}-Linux-x86.tar.bz2 /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
     busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86.tar.bz2 ${version}-Linux-x86.tar.bz2
-
     shutdown -h now
 zzzzEOFzzzz
     sleep 10
