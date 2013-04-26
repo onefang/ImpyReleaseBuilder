@@ -79,6 +79,7 @@ then
     #expect -c 'spawn ssh -p 2222 me@localhost ; expect assword ; send " \n" ; interact' <<- zzzzEOFzzzz
     ssh -p 2222 me@localhost <<- zzzzEOFzzzz
     # TODO - there has to be a way of avoiding all this hard coded stuff, coz this is way too fragile.
+    #        On the other hand, when doing this via click and pointy VS express, you would need to manually configure them into that anyway.  Which is still not good.
     # Windows python insists on putting some crap at the end of the output, so we can't run the above version command here, instead just pass it.
     export version=${version}
     PATH='/bin:/usr/local/bin:/usr/bin:'\$PATH':/cygdrive/c/Program Files/Microsoft SDKs/v6.1/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/SDK/v2.0/Bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/IDE:/cygdrive/c/Program Files/Microsoft Visual Studio 8/VC/bin:/cygdrive/c/Program Files/Microsoft Visual Studio 8/Common7/Tools/:/cygdrive/c/Program Files/Inno Setup 5'
@@ -105,7 +106,7 @@ then
     ./2-trim-libraries-from-SL
     ./3-compile-SL-source
     ./4-package-viewer
-    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/package/${version}-*.exe /home/me/TARBALLS
+    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/RelWithDebInfo/package/${version}-*.exe /home/me/TARBALLS
     cd /home/me/TARBALLS
     lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput ${version}-*.exe'
     shutdown -s now
