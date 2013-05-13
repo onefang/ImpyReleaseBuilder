@@ -75,7 +75,7 @@ if [ $do_windowsXP -eq 1 ]
 then
     echo "Building in qemu, Windows XP."
     qemu-system-i386 -M pc -cpu athlon -m 2G -hda ${img_windowsXP} -net nic -net user,vlan=0,hostfwd=tcp::2222-:22 -rtc base=localtime &
-    sleep 30
+    sleep 60
     #expect -c 'spawn ssh -p 2222 me@localhost ; expect assword ; send " \n" ; interact' <<- zzzzEOFzzzz
     ssh -p 2222 me@localhost <<- zzzzEOFzzzz
     # TODO - there has to be a way of avoiding all this hard coded stuff, coz this is way too fragile.
