@@ -74,7 +74,7 @@ FTP_SERVER=10.0.2.2
 if [ $do_windowsXP -eq 1 ]
 then
     echo "Building in qemu, Windows XP."
-    qemu-system-i386 -M pc -cpu athlon -m 2G -hda ${img_windowsXP} -net nic -net user,vlan=0,hostfwd=tcp::2222-:22 -rtc base=localtime &
+    qemu-system-i386 -M pc -cpu athlon -m 2G -drive file=${img_windowsXP},index=0,media=disk,cache=none -net nic -net user,vlan=0,hostfwd=tcp::2222-:22 -rtc base=localtime &
     sleep 60
     #expect -c 'spawn ssh -p 2222 me@localhost ; expect assword ; send " \n" ; interact' <<- zzzzEOFzzzz
     ssh -p 2222 me@localhost <<- zzzzEOFzzzz
@@ -174,7 +174,7 @@ fi
 if [ $do_linux64 -eq 1 ]
 then
     echo "Building in qemu, 64 bit linux." &&
-    qemu-system-x86_64 -M pc -cpu phenom -m 1G -hda ${img_linux64} -serial stdio <<- zzzzEOFzzzz
+    qemu-system-x86_64 -M pc -cpu phenom -m 1G -drive file=${img_linux64},index=0,media=disk,cache=none -serial stdio <<- zzzzEOFzzzz
 	#
     mkdir -p /home/builder &&
     cd /home/builder &&
@@ -206,7 +206,7 @@ fi
 if [ $do_linux32 -eq 1 ]
 then
     echo "Building in qemu, 32 bit linux." &&
-    qemu-system-i386 -M pc -cpu athlon -m 1G -hda ${img_linux32} -serial stdio <<- zzzzEOFzzzz
+    qemu-system-i386 -M pc -cpu athlon -m 1G -drive file=${img_linux32},index=0,media=disk,cache=none -serial stdio <<- zzzzEOFzzzz
 	#
     mkdir -p /home/builder &&
     cd /home/builder &&
