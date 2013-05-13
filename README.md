@@ -5,7 +5,7 @@ A script to build Imprudence for various OSes using qemu and virtual
 serial ports.
 
 Lot's of people wonder why I don't use ssh, the reason is that ssh
-requires both tho host and the guest computer to spend effort on
+requires both the host and the guest computer to spend effort on
 encrypting the data stream that is only private between them anyway. 
 The poor things are working hard enough compiling the horendously huge
 viewer, the less overhead the better.  So the only thing using ssh gets
