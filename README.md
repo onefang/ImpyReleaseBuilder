@@ -18,29 +18,47 @@ Installing 64 bit Linux build image.
 Get an Ubuntu 10.04.1 AMD64 desktop install CD image.
 
 Create a qemu disk image -
+
 qemu-img create -f qcow2 ubuntu64_base.qcow2 20G
 
+
 Start up qemu, booting from the CD image the first time -
+
 qemu-system-x86_64 -M pc -cpu qemu64 -m 1G -hda ubuntu64_base.qcow2 -cdrom ubuntu-10.04.1-desktop-amd64.iso -boot once=d
 
+
 Install Ubuntu.  Mostly select the defaults, except -
+
 Log in automatically.
 
+
 Update the system -
+
 apt-get update
+
 apt-get dist-upgrade
 
+
 Make sure this is in /etc/init/ttyS0.conf -
+
 start on stopped rc RUNLEVEL=[2345]
+
 stop on runlevel [!2345]
+
 respawn
+
 exec /sbin/getty -iLn -l /bin/bash 115200 ttyS0 vt102
 
-Install developmont stuff, and build time dependencies.
+
+Install development stuff, and build time dependencies.
+
 apt-get install cmake binutils-gold bison build-essential flex git-core texinfo
+
 apt-get install freeglut3-dev libcrypto++-dev libgcrypt11-dev libgpg-error-dev libgsf-1-dev libmagic-dev libssl-dev libxinerama-dev libxrender-dev
 
+
 Shutdown qemu, then setup the snapshot -
+
 qemu-img create -f qcow2 -o backing_file=ubuntu64_base.qcow2 ubuntu64_diff.qcow2
 
 
@@ -56,15 +74,25 @@ Installing Windows XP build image.
 
 Been a long time since I did this, forgot how.  These are the general tasks -
 
+
 create the disk image
+
 install under qemu
+
 reboot
+
 labourously install all the development stuff and build time dependencies
+
 (refer to http://wiki.kokuaviewer.org/wiki/Imprudence:Compiling/1.4/Windows for details)
+
 reboot
+
 setup cygwin shell on serial port as a service
+
 or sshd, seems to work better
+
 reboot
+
 Then reboot more, coz it's Windows.
 
 
