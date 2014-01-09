@@ -7,7 +7,7 @@ do_local=0
 do_mac=0
 do_windowsXP=1
 
-# Where to find suitable disk images for the various OS's.
+# Where to find suitable VM disk images for the various OS's.
 img_linux64=~/bin/ubuntu64_diff.qcow2
 img_linux32=~/bin/ubuntu32_diff.qcow2
 img_windowsXP=/media/sdb2/IMAGES/xp_diff.qcow2
