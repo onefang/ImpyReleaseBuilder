@@ -166,7 +166,7 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp ${version}-Linux-*.tar.bz2 ../../../../../TARBALLS
+    cp ${version}-*.tar.bz2 ../../../../../TARBALLS
     cd ../../../../..
 fi
 
@@ -194,9 +194,9 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp ${version}-Linux-x86_64.tar.bz2 /home/builder/TARBALLS &&
+    cp ${version}-*.tar.bz2 /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
-    busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86_64.tar.bz2 ${version}-Linux-x86_64.tar.bz2
+    busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-*.tar.bz2 ${version}-*.tar.bz2
     shutdown -h now
 zzzzEOFzzzz
     sleep 10
@@ -225,9 +225,9 @@ then
     ./3-compile-SL-source &&
     ./4-package-viewer &&
     cd ../../indra/viewer-linux-* &&
-    cp ${version}-Linux-x86.tar.bz2 /home/builder/TARBALLS &&
+    cp ${version}-*.tar.bz2 /home/builder/TARBALLS &&
     cd /home/builder/TARBALLS &&
-    busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-Linux-x86.tar.bz2 ${version}-Linux-x86.tar.bz2
+    busybox ftpput ${FTP_SERVER} -vP ${FTP_PORT} ${version}-*.tar.bz2 ${version}-*.tar.bz2
     shutdown -h now
 zzzzEOFzzzz
     sleep 10
