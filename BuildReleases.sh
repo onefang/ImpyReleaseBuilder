@@ -12,8 +12,6 @@ img_linux64=~/bin/ubuntu64_diff.qcow2
 img_linux32=~/bin/ubuntu32_diff.qcow2
 img_windowsXP=/media/sdb2/IMAGES/xp_diff.qcow2
 
-# Extra PATH for cygwin, coz it don't pick up the Windows PATH in the serial console.
-cw_path='/cygdrive/c/WINDOWS/system32:/cygdrive/c/WINDOWS:/cygdrive/c/WINDOWS/System32/Wbem:/cygdrive/c/Program Files/CMake 2.8/bin:/cygdrive/c/Python27:/cygdrive/c/Program Files/Git/cmd'
 
 unique_port()
 {
@@ -71,13 +69,19 @@ FTP_SERVER=10.0.2.2
 
 
 # Do Windows first, coz it still needs a manually typed password, dammit.
+# Also coz Windows is unreliable, even putting in a one minute wait and still it often craps out the SSH session straight away.
+# On top of that, best to run a defrag on the thing before trying this, otherwise it runs for six hours then bombs out.
 if [ $do_windowsXP -eq 1 ]
 then
     echo "Building in qemu, Windows XP."
+    # Extra PATH for cygwin, coz it don't pick up the Windows PATH in the serial console.
+    #cw_path='/cygdrive/c/WINDOWS/system32:/cygdrive/c/WINDOWS:/cygdrive/c/WINDOWS/System32/Wbem:/cygdrive/c/Program Files/CMake 2.8/bin:/cygdrive/c/Python27:/cygdrive/c/Program Files/Git/cmd'
+
     qemu-system-i386 -M pc -cpu athlon -m 2G -drive file=${img_windowsXP},index=0,media=disk,cache=none -net nic -net user,vlan=0,hostfwd=tcp::2222-:22 -rtc base=localtime &
-    sleep 60
+    sleep 90
     #expect -c 'spawn ssh -p 2222 me@localhost ; expect assword ; send " \n" ; interact' <<- zzzzEOFzzzz
     ssh -p 2222 me@localhost <<- zzzzEOFzzzz
+     
     # TODO - there has to be a way of avoiding all this hard coded stuff, coz this is way too fragile.
     #        On the other hand, when doing this via click and pointy VS express, you would need to manually configure them into that anyway.  Which is still not good.
     # Windows python insists on putting some crap at the end of the output, so we can't run the above version command here, instead just pass it.
@@ -106,9 +110,11 @@ then
     ./2-trim-libraries-from-SL
     ./3-compile-SL-source
     ./4-package-viewer
-    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/RelWithDebInfo/package/${version}-*.exe /home/me/TARBALLS
+#    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/RelWithDebInfo/package/${version}-*.exe /home/me/TARBALLS
+    cp /home/me/BUILD/SOURCE/linden/indra/build-nmake/newview/RelWithDebInfo/package/Imprudence-*.exe /home/me/TARBALLS
     cd /home/me/TARBALLS
-    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput ${version}-*.exe'
+#    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput ${version}-*.exe'
+    lftp -c 'open -p ${FTP_PORT} ${FTP_SERVER} && lcd /home/me/TARBALLS && mput Imprudence-*.exe'
     shutdown -s now
 zzzzEOFzzzz
 
