@@ -4,7 +4,7 @@
 do_linux64=1
 do_linux32=1
 do_local=0
-do_mac=0
+do_mac=1
 do_windowsXP=1
 
 # Where to find suitable VM disk images for the various OS's.
@@ -12,6 +12,9 @@ img_linux64=~/bin/ubuntu64_diff.qcow2
 img_linux32=~/bin/ubuntu32_diff.qcow2
 img_windowsXP=/media/sdb2/IMAGES/xp_diff.qcow2
 
+# The Mac build is on a real Mac, coz Apple insists you need real Apple hardware.
+FTP_HOST=172.16.0.3
+IP_mac=172.16.0.116
 
 unique_port()
 {
@@ -158,6 +161,41 @@ zzzzEOFzzzz
 fi
 
 
+if [ $do_mac -eq 1 ]
+then
+    echo "Building on a real Mac, 32 bit Mac OS X." &&
+    ssh -i .ssh/builder_id_dsa builder@${IP_mac} <<- zzzzEOFzzzz
+     
+    # Pick up MacPorts paths.
+    . .profile &&
+    # Select the 3.2.6 Xcode.  Dammit, this needs root to run it.
+    #xcode-select -switch /Xcode/Xcode_3.2.6
+    cd ~ &&
+    rm -fr BUILD &&
+    rm -fr TARBALLS &&
+    mkdir -p BUILD &&
+    mkdir -p TARBALLS &&
+    sleep 2 &&
+    lftp -c 'open -p ${FTP_PORT} ${FTP_HOST} && lcd TARBALLS && get1 ${version}-source_${date}.tar.gz'
+    tar xzf TARBALLS/${version}-source_${date}.tar.gz -C BUILD &&
+    cd BUILD/SOURCE &&
+    cd linden/scripts/linux &&
+    ./0-patch-SL-source &&
+    ./1-get-libraries-from-SL &&
+    ./2-trim-libraries-from-SL &&
+    ./3-compile-SL-source &&
+    ./4-package-viewer &&
+    cd ../../indra/build-darwin-* &&
+    cd newview &&
+    cp ${version}-*.dmg ~/TARBALLS &&
+    cd ~/TARBALLS &&
+    lftp -c 'open -p ${FTP_PORT} ${FTP_HOST} && lcd ~/TARBALLS && mput ${version}-*.dmg'
+    # Select the 4.6.2 Xcode.  Dammit, this needs root to run it.
+    #xcode-select -switch /Applications/Xcode_4.6.3.app/Contents/Developer
+zzzzEOFzzzz
+fi
+
+
 if [ $do_local -eq 1 ]
 then
     echo "Building local." &&
@@ -240,7 +278,3 @@ zzzzEOFzzzz
 fi
 
 
-if [ $do_mac -eq 1 ]
-then
-    echo "No Mac support yet, coz I need a real Mac for that."
-fi
