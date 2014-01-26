@@ -13,8 +13,8 @@ img_linux32=~/bin/ubuntu32_diff.qcow2
 img_windowsXP=/media/sdb2/IMAGES/xp_diff.qcow2
 
 # The Mac build is on a real Mac, coz Apple insists you need real Apple hardware.
-FTP_HOST=172.16.0.3
-IP_mac=172.16.0.116
+FTP_HOST="172.16.0.3"
+IP_mac="172.16.0.116"
 
 unique_port()
 {
@@ -164,10 +164,7 @@ fi
 if [ $do_mac -eq 1 ]
 then
     echo "Building on a real Mac, 32 bit Mac OS X." &&
-    ssh -i .ssh/builder_id_dsa builder@${IP_mac} <<- zzzzEOFzzzz
-     
-    # Pick up MacPorts paths.
-    . .profile &&
+    ssh -i .ssh/builder_id_dsa builder@${IP_mac} bash -l <<- zzzzEOFzzzz
     # Select the 3.2.6 Xcode.  Dammit, this needs root to run it.
     #xcode-select -switch /Xcode/Xcode_3.2.6
     cd ~ &&
